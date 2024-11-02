@@ -7,6 +7,7 @@ namespace ChattingApplication.DTOs
         [Required]
         public string userName { get; set; }
         [Required]
+        [StringLength(8)]
         public string password { get; set; }
 
     }

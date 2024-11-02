@@ -1,5 +1,6 @@
 using ChattingApplication.Data;
 using ChattingApplication.Extensions;
+using ChattingApplication.Middleware;
 using ChattingApplication.Srvices.TokenServics;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
@@ -22,6 +23,8 @@ builder.Services.AddIdentityServices(builder.Configuration);
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
+app.UseMiddleware<ExceptionMiddleware>();
+
 app.UseCors(builder => builder.AllowAnyHeader().AllowAnyMethod().WithOrigins("http://localhost:4200"));
 if (app.Environment.IsDevelopment())
 {
