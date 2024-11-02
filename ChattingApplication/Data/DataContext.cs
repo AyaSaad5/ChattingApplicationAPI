@@ -10,6 +10,14 @@ namespace ChattingApplication.Data
             
         }
 
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<AppUser>()
+                         .Property(p => p.DateOfBirth)
+                         .HasConversion(
+                d => d.ToDateTime(TimeOnly.MinValue),  // Convert DateOnly to DateTime
+                d => DateOnly.FromDateTime(d)); 
+        }
         public DbSet<AppUser> Users { get; set; }
     }
 }
