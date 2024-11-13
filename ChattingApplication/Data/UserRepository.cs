@@ -19,7 +19,7 @@ namespace ChattingApplication.Data
 
         public async Task<AppUser> GetUserByUserNameAsync(string username)
         {
-            return await _context.Users.SingleOrDefaultAsync(u => u.UserName == username);
+            return await _context.Users.Include(p => p.Photos).SingleOrDefaultAsync(u => u.UserName == username);
         }
 
         public async Task<IEnumerable<AppUser>> GetUsersAsync()
