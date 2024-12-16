@@ -1,6 +1,7 @@
 ﻿using ChattingApplication.Data;
 using ChattingApplication.Helpers;
 using ChattingApplication.Interfaces;
+using ChattingApplication.Srvices;
 using ChattingApplication.Srvices.TokenServics;
 using Microsoft.EntityFrameworkCore;
 using System.Runtime.CompilerServices;
@@ -17,6 +18,8 @@ namespace ChattingApplication.Extensions
             services.AddScoped<ITokenService, TokenService>();
             services.AddScoped<IUserRepository, UserRepository>();
             services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+            services.Configure<CloudSetting>(config.GetSection("CloudinarySetting"));
+            services.AddScoped<IPhotoService, PhotoService>();
 
             return services;
         }

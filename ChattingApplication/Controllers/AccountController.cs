@@ -49,7 +49,7 @@ namespace ChattingApplication.Controllers
         [HttpPost("login")]
         public async Task<ActionResult<UserDTO>> Login(LoginDTO loginDto)
         {
-            var user = await _dataContext.Users.SingleOrDefaultAsync(u => u.UserName == loginDto.userName);
+            var user = await _dataContext.Users.Include(p => p.Photos).SingleOrDefaultAsync(u => u.UserName == loginDto.userName);
             if (user == null) return Unauthorized("Invalid userName");
 
             using var hmac = new HMACSHA512(user.PasswordSalt);
@@ -63,7 +63,8 @@ namespace ChattingApplication.Controllers
             return new UserDTO
             {
                 userName = user.UserName,
-                token = _tokenService.GenerateToken(user)
+                token = _tokenService.GenerateToken(user),
+                PhotoUrl = user.Photos.FirstOrDefault(x => x.IsMain)?.Url
             };
         }
         private async Task<bool> UserExists(string userName)
