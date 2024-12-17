@@ -1,4 +1,5 @@
-﻿using ChattingApplication.Data;
+﻿using AutoMapper;
+using ChattingApplication.Data;
 using ChattingApplication.DTOs;
 using ChattingApplication.Entities;
 using ChattingApplication.Srvices.TokenServics;
@@ -15,11 +16,14 @@ namespace ChattingApplication.Controllers
     {
         private readonly DataContext _dataContext;
         private readonly ITokenService _tokenService;
+        private readonly IMapper _mapper;
 
-        public AccountController(DataContext dataContext, ITokenService tokenService)
+        public AccountController(DataContext dataContext, ITokenService tokenService,
+                                 IMapper mapper)
         {
             _dataContext = dataContext;
             _tokenService = tokenService;
+            _mapper = mapper;
         }
 
         [HttpPost("register")]
@@ -27,14 +31,14 @@ namespace ChattingApplication.Controllers
         {
             if (await UserExists(registerDto.userName)) return BadRequest("UserName is taken");
 
+            var user = _mapper.Map<AppUser>(registerDto);
             using var hmac = new HMACSHA512();
 
-            var user = new AppUser
-            {
-                UserName = registerDto.userName.ToLower(),
-                PasswordHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(registerDto.password)),
-                PasswordSalt = hmac.Key
-            };
+
+            user.UserName = registerDto.userName.ToLower();
+            user.PasswordHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(registerDto.password));
+            user.PasswordSalt = hmac.Key;
+          
 
             await _dataContext.AddAsync(user);
             _dataContext.SaveChanges();
@@ -42,7 +46,9 @@ namespace ChattingApplication.Controllers
             return new UserDTO
             {
                 userName = user.UserName,
-                token = _tokenService.GenerateToken(user)
+                token = _tokenService.GenerateToken(user),
+                PhotoUrl = user.Photos.FirstOrDefault(x => x.IsMain)?.Url,
+                knownAs = user.KnownAs
             };
         }
 
@@ -64,7 +70,8 @@ namespace ChattingApplication.Controllers
             {
                 userName = user.UserName,
                 token = _tokenService.GenerateToken(user),
-                PhotoUrl = user.Photos.FirstOrDefault(x => x.IsMain)?.Url
+                PhotoUrl = user.Photos.FirstOrDefault(x => x.IsMain)?.Url,
+                knownAs = user.KnownAs
             };
         }
         private async Task<bool> UserExists(string userName)

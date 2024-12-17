@@ -17,6 +17,8 @@ namespace ChattingApplication.Helpers
                 .ForMember(dest => dest.Age,
                  opt => opt.MapFrom(src => src.DateOfBirth.CalculateAge()));
             CreateMap<MemberUpdateDTO, AppUser>();
+
+            CreateMap<RegisterDTO, AppUser>().ReverseMap();
         }
     }
 }
