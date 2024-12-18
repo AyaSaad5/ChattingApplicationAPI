@@ -3,6 +3,7 @@ using ChattingApplication.Data;
 using ChattingApplication.DTOs;
 using ChattingApplication.Entities;
 using ChattingApplication.Extensions;
+using ChattingApplication.Helpers;
 using ChattingApplication.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -28,11 +29,13 @@ namespace ChattingApplication.Controllers
 
         [AllowAnonymous]
         [HttpGet]
-        public async Task <ActionResult<IEnumerable<MemberDTO>>> GetUsers()
+        public async Task <ActionResult<PagedList<MemberDTO>>> GetUsers([FromQuery] UserParams userParams)
        {
-            var users = await _userRepository.GetUsersAsync();
-            var mappedUsers = _mapper.Map<IEnumerable<MemberDTO>>(users);
-            return Ok(mappedUsers);
+            var users = await _userRepository.GetMembersAsync(userParams);
+            //var mappedUsers = _mapper.Map<IEnumerable<MemberDTO>>(users);
+            Response.AddPaginationHeader(new PaginationHeader(users.currentPage, users.pageSize,
+                                         users.totalCount, users.totalPages));
+            return Ok(users);
         }
 
         [HttpGet("{id}")]
