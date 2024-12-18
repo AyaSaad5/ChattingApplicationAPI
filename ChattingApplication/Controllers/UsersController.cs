@@ -31,10 +31,17 @@ namespace ChattingApplication.Controllers
         [HttpGet]
         public async Task <ActionResult<PagedList<MemberDTO>>> GetUsers([FromQuery] UserParams userParams)
        {
+            var currentUser = await _userRepository.GetUserByUserNameAsync(User.GetUserName());
+            userParams.CurrentUsername = currentUser.UserName;
+
+            if(string.IsNullOrEmpty(userParams.Gender))
+            {
+                userParams.Gender = currentUser.Gender == "male" ? "female" : "male";
+            }
             var users = await _userRepository.GetMembersAsync(userParams);
             //var mappedUsers = _mapper.Map<IEnumerable<MemberDTO>>(users);
-            Response.AddPaginationHeader(new PaginationHeader(users.currentPage, users.pageSize,
-                                         users.totalCount, users.totalPages));
+            Response.AddPaginationHeader(new PaginationHeader(users.currentPage, users.totalPages, users.pageSize,
+                                         users.totalCount));
             return Ok(users);
         }
 

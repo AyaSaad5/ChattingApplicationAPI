@@ -18,7 +18,9 @@ namespace ChattingApplication.Srvices.TokenServics
         {
             var claims = new List<Claim>
             {
-                new Claim(JwtRegisteredClaimNames.NameId, user.UserName)
+                new Claim(JwtRegisteredClaimNames.NameId, user.Id.ToString()),
+                new Claim(JwtRegisteredClaimNames.UniqueName, user.UserName),
+
             };
 
             var cred = new SigningCredentials(_key, SecurityAlgorithms.HmacSha512Signature);

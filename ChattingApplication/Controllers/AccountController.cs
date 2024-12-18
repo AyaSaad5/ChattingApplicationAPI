@@ -48,7 +48,8 @@ namespace ChattingApplication.Controllers
                 userName = user.UserName,
                 token = _tokenService.GenerateToken(user),
                 PhotoUrl = user.Photos.FirstOrDefault(x => x.IsMain)?.Url,
-                knownAs = user.KnownAs
+                knownAs = user.KnownAs,
+                Gender = user.Gender
             };
         }
 
@@ -71,7 +72,8 @@ namespace ChattingApplication.Controllers
                 userName = user.UserName,
                 token = _tokenService.GenerateToken(user),
                 PhotoUrl = user.Photos.FirstOrDefault(x => x.IsMain)?.Url,
-                knownAs = user.KnownAs
+                knownAs = user.KnownAs,
+                Gender = user.Gender
             };
         }
         private async Task<bool> UserExists(string userName)

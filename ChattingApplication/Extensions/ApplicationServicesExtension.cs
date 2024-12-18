@@ -20,7 +20,7 @@ namespace ChattingApplication.Extensions
             services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
             services.Configure<CloudSetting>(config.GetSection("CloudinarySetting"));
             services.AddScoped<IPhotoService, PhotoService>();
-
+            services.AddScoped<LogUserActivity>();
             return services;
         }
     }
