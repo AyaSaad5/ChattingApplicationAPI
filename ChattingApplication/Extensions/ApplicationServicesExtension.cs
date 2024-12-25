@@ -21,6 +21,7 @@ namespace ChattingApplication.Extensions
             services.Configure<CloudSetting>(config.GetSection("CloudinarySetting"));
             services.AddScoped<IPhotoService, PhotoService>();
             services.AddScoped<ILikeRepository, LikeRepository>();
+            services.AddScoped<IMessageRepository, MessageRepository>();
             services.AddScoped<LogUserActivity>();
             return services;
         }

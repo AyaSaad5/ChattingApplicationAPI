@@ -32,8 +32,18 @@ namespace ChattingApplication.Data
                          .WithMany(l => l.LikedByUsers)
                          .HasForeignKey(t => t.TargetUserId)
                          .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Message>()
+                         .HasOne(m => m.Recipient)
+                         .WithMany(m => m.MessagesReceived)
+                         .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<Message>()
+                        .HasOne(m => m.Sender)
+                        .WithMany(m => m.MessagesSent)
+                        .OnDelete(DeleteBehavior.Restrict);
         }
         public DbSet<AppUser> Users { get; set; }
         public DbSet<UserLike> Likes { get; set; }
+        public DbSet<Message> Message { get; set; }
     }
 }
