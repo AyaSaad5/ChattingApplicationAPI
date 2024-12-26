@@ -4,6 +4,6 @@ namespace ChattingApplication.Srvices.TokenServics
 {
     public interface ITokenService
     {
-        public string GenerateToken(AppUser user);
+        public Task<string> GenerateToken(AppUser user);
     }
 }

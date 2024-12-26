@@ -1,8 +1,10 @@
 using ChattingApplication.Data;
+using ChattingApplication.Entities;
 using ChattingApplication.Extensions;
 using ChattingApplication.Middleware;
 using ChattingApplication.Srvices.TokenServics;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
@@ -44,8 +46,10 @@ var services = scope.ServiceProvider;
 try
 {
     var context = services.GetRequiredService<DataContext>();
+    var userManager = services.GetRequiredService<UserManager<AppUser>>();
+    var roleManager = services.GetRequiredService<RoleManager<AppRole>>();
     await context.Database.MigrateAsync();
-    await Seed.SeedUsers(context);
+    await Seed.SeedUsers(userManager, roleManager);
 }
 catch(Exception ex)
 {

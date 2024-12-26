@@ -13,6 +13,7 @@ using System.Security.Claims;
 
 namespace ChattingApplication.Controllers
 {
+    [Authorize]
     public class UsersController : BaseApiController
     {
         private readonly IUserRepository _userRepository;
@@ -27,7 +28,8 @@ namespace ChattingApplication.Controllers
             _photoService = photoService;
         }
 
-        [AllowAnonymous]
+        //[AllowAnonymous]
+        //[Authorize(Roles ="Admin")]
         [HttpGet]
         public async Task <ActionResult<PagedList<MemberDTO>>> GetUsers([FromQuery] UserParams userParams)
        {
@@ -44,6 +46,7 @@ namespace ChattingApplication.Controllers
                                          users.totalCount));
             return Ok(users);
         }
+       // [Authorize(Roles = "Member")]
 
         [HttpGet("{id}")]
         public async Task<ActionResult<MemberDTO>> GetUserById(int id)
