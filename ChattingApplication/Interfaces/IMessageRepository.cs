@@ -12,6 +12,11 @@ namespace ChattingApplication.Interfaces
         Task<PagedList<MessageDTO>> GetMessagesForUser(MessageParams messageParams);
         Task<IEnumerable<MessageDTO>> GetMessageThread(string currentUserName, string recipientUserName);
 
+        void AddGroup(Group group);
+        void RemoveConnection(Connection connection);
+
+        Task<Connection> GetConnection(string connectionId);
+        Task<Group> GetMessagegroup(string groupName);
         Task<bool> SaveAllAsync();
     }
 }

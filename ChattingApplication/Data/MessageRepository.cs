@@ -18,6 +18,12 @@ namespace ChattingApplication.Data
             _context = context;
             this.mapper = mapper;
         }
+
+        public async void AddGroup(Group group)
+        {
+             _context.Groups.Add(group);
+        }
+
         public void AddMessage(Message message)
         {
             _context.Message.Add(message);
@@ -28,9 +34,20 @@ namespace ChattingApplication.Data
             _context.Message.Remove(message);
         }
 
+        public async Task<Connection> GetConnection(string connectionId)
+        {
+           return await _context.Connections.FindAsync(connectionId);
+        }
+
         public async Task<Message> GetMessage(int id)
         {
             return await _context.Message.FindAsync(id);
+        }
+
+        public async Task<Group> GetMessagegroup(string groupName)
+        {
+            return await _context.Groups.Include(c => c.Connections)
+                .FirstOrDefaultAsync(n => n.Name == groupName);
         }
 
         public async Task<PagedList<MessageDTO>> GetMessagesForUser(MessageParams messageParams)
@@ -79,6 +96,11 @@ namespace ChattingApplication.Data
                 await _context.SaveChangesAsync();
             }
             return this.mapper.Map<IEnumerable<MessageDTO>>(messages);
+        }
+
+        public void RemoveConnection(Connection connection)
+        {
+            _context.Connections.Remove(connection);
         }
 
         public async Task<bool> SaveAllAsync()

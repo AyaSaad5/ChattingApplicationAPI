@@ -1,6 +1,7 @@
 ﻿using ChattingApplication.Data;
 using ChattingApplication.Helpers;
 using ChattingApplication.Interfaces;
+using ChattingApplication.SignalR;
 using ChattingApplication.Srvices;
 using ChattingApplication.Srvices.TokenServics;
 using Microsoft.EntityFrameworkCore;
@@ -23,6 +24,9 @@ namespace ChattingApplication.Extensions
             services.AddScoped<ILikeRepository, LikeRepository>();
             services.AddScoped<IMessageRepository, MessageRepository>();
             services.AddScoped<LogUserActivity>();
+
+            services.AddSignalR();
+            services.AddSingleton<PrecenseTracker>();
             return services;
         }
     }

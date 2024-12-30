@@ -2,6 +2,7 @@ using ChattingApplication.Data;
 using ChattingApplication.Entities;
 using ChattingApplication.Extensions;
 using ChattingApplication.Middleware;
+using ChattingApplication.SignalR;
 using ChattingApplication.Srvices.TokenServics;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
@@ -27,7 +28,8 @@ var app = builder.Build();
 // Configure the HTTP request pipeline.
 app.UseMiddleware<ExceptionMiddleware>();
 
-app.UseCors(builder => builder.AllowAnyHeader().AllowAnyMethod().WithOrigins("http://localhost:4200", "http://localhost:56909"));
+app.UseCors(builder => builder.AllowAnyHeader().AllowAnyMethod()
+                               .AllowCredentials().WithOrigins("http://localhost:4200", "https://localhost:7283/hubs", "http://localhost:56909"));
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -40,6 +42,8 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+app.MapHub<PrecenseHub>("hubs/precense");
+app.MapHub<MessageHub>("hubs/message");
 
 using var scope = app.Services.CreateScope();
 var services = scope.ServiceProvider;
@@ -49,6 +53,8 @@ try
     var userManager = services.GetRequiredService<UserManager<AppUser>>();
     var roleManager = services.GetRequiredService<RoleManager<AppRole>>();
     await context.Database.MigrateAsync();
+
+    await context.Database.ExecuteSqlRawAsync("DELETE FROM  [Connections]");
     await Seed.SeedUsers(userManager, roleManager);
 }
 catch(Exception ex)

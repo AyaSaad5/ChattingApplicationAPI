@@ -70,5 +70,7 @@ namespace ChattingApplication.Data
         public DbSet<AppUser> Users { get; set; }
         public DbSet<UserLike> Likes { get; set; }
         public DbSet<Message> Message { get; set; }
+        public DbSet<Group> Groups { get; set; }
+        public DbSet<Connection> Connections { get; set; }
     }
 }
