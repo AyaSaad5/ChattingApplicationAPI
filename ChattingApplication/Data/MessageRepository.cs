@@ -72,9 +72,7 @@ namespace ChattingApplication.Data
 
         public async Task<IEnumerable<MessageDTO>> GetMessageThread(string currentUserName, string recipientUserName)
         {
-            var messages = await _context.Message.
-                           Include(u => u.Sender).ThenInclude(p => p.Photos)
-                           .Include(u => u.Recipient).ThenInclude(p => p.Photos)
+            var query =  _context.Message
                            .Where(
                                   m => m.RecipientUsername == currentUserName &&
                                   m.RecipientDeleted == false &&
@@ -82,9 +80,9 @@ namespace ChattingApplication.Data
                                   m.RecipientUsername == recipientUserName &&
                                   m.SenderDeleted == false &&
                                   m.SenderUsername == currentUserName)
-                                  .OrderByDescending(m => m.MessageSent).ToListAsync();
+                                  .OrderByDescending(m => m.MessageSent).AsQueryable();
 
-            var unreadMessages = messages.Where(m => m.DateRead == null &&
+            var unreadMessages = query.Where(m => m.DateRead == null &&
                                                 m.RecipientUsername == currentUserName);
 
             if(unreadMessages.Any())
@@ -95,7 +93,7 @@ namespace ChattingApplication.Data
                 }
                 await _context.SaveChangesAsync();
             }
-            return this.mapper.Map<IEnumerable<MessageDTO>>(messages);
+            return await query.ProjectTo<MessageDTO>(mapper.ConfigurationProvider).ToListAsync();
         }
 
         public void RemoveConnection(Connection connection)
@@ -103,9 +101,6 @@ namespace ChattingApplication.Data
             _context.Connections.Remove(connection);
         }
 
-        public async Task<bool> SaveAllAsync()
-        {
-            return await _context.SaveChangesAsync() > 0;
-        }
+   
     }
 }

@@ -13,16 +13,14 @@ namespace ChattingApplication.Controllers
    
     public class MessagesController : BaseApiController
     {
-        private readonly IUserRepository _userRepository;
-        private readonly IMessageRepository _messageRepository;
+        private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
 
-        public MessagesController(IUserRepository userRepository,
-                                  IMessageRepository messageRepository,
+        public MessagesController(IUnitOfWork unitOfWork,
                                   IMapper mapper)
         {
-            _userRepository = userRepository;
-           _messageRepository = messageRepository;
+
+            _unitOfWork = unitOfWork;
             _mapper = mapper;
         }
         [HttpPost]
@@ -32,8 +30,8 @@ namespace ChattingApplication.Controllers
             if (username == createMessageDTO.RecipientUsername.ToLower())
                 return BadRequest("you cant sent messages to ur self");
 
-            var sender =await  _userRepository.GetUserByUserNameAsync(username);
-            var recipient = await _userRepository.GetUserByUserNameAsync(createMessageDTO.RecipientUsername);
+            var sender =await  _unitOfWork.UserRepository.GetUserByUserNameAsync(username);
+            var recipient = await _unitOfWork.UserRepository.GetUserByUserNameAsync(createMessageDTO.RecipientUsername);
 
             if (recipient == null) return NotFound();
 
@@ -45,9 +43,9 @@ namespace ChattingApplication.Controllers
                 RecipientUsername = recipient.UserName,
                 Content = createMessageDTO.Content
             };
-            _messageRepository.AddMessage(message);
+            _unitOfWork.MessageRepository.AddMessage(message);
 
-            if(await _messageRepository.SaveAllAsync())
+            if(await _unitOfWork.Complete())
                 return Ok(_mapper.Map<MessageDTO>(message));
             return BadRequest("failed to send message");
         }
@@ -56,7 +54,7 @@ namespace ChattingApplication.Controllers
         {
             messageParams.UserName = User.GetUserName();
 
-            var messages = await _messageRepository.GetMessagesForUser(messageParams);
+            var messages = await _unitOfWork.MessageRepository.GetMessagesForUser(messageParams);
 
             Response.AddPaginationHeader(new PaginationHeader(messages.currentPage,
                                          messages.pageSize, messages.totalCount,
@@ -70,7 +68,7 @@ namespace ChattingApplication.Controllers
         {
             var currentUserName = User.GetUserName();
 
-            return Ok(await _messageRepository.GetMessageThread(currentUserName, username));
+            return Ok(await _unitOfWork.MessageRepository.GetMessageThread(currentUserName, username));
         }
 
         [HttpDelete("{id}")]
@@ -78,7 +76,7 @@ namespace ChattingApplication.Controllers
         {
             var username = User.GetUserName();
 
-            var message = await _messageRepository.GetMessage(id);
+            var message = await _unitOfWork.MessageRepository.GetMessage(id);
 
             if(message.SenderUsername !=  username && message.RecipientUsername != username)
                 return Unauthorized();
@@ -87,9 +85,9 @@ namespace ChattingApplication.Controllers
             if(message.SenderUsername == username) message.SenderDeleted = true;
 
             if (message.SenderDeleted && message.RecipientDeleted)
-                _messageRepository.DeleteMessage(message);
+                _unitOfWork.MessageRepository.DeleteMessage(message);
 
-            if (await _messageRepository.SaveAllAsync()) return Ok();
+            if (await _unitOfWork.Complete()) return Ok();
 
             return BadRequest("Can't delete message");
         }

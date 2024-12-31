@@ -17,6 +17,5 @@ namespace ChattingApplication.Interfaces
 
         Task<Connection> GetConnection(string connectionId);
         Task<Group> GetMessagegroup(string groupName);
-        Task<bool> SaveAllAsync();
     }
 }

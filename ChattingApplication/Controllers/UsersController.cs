@@ -16,14 +16,14 @@ namespace ChattingApplication.Controllers
     [Authorize]
     public class UsersController : BaseApiController
     {
-        private readonly IUserRepository _userRepository;
+        private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
         private readonly IPhotoService _photoService;
 
-        public UsersController(IUserRepository userRepository, IMapper mapper,
+        public UsersController(IUnitOfWork unitOfWork, IMapper mapper,
                                IPhotoService photoService)
         {
-            _userRepository = userRepository;
+            _unitOfWork = unitOfWork;
             _mapper = mapper;
             _photoService = photoService;
         }
@@ -33,14 +33,14 @@ namespace ChattingApplication.Controllers
         [HttpGet]
         public async Task <ActionResult<PagedList<MemberDTO>>> GetUsers([FromQuery] UserParams userParams)
        {
-            var currentUser = await _userRepository.GetUserByUserNameAsync(User.GetUserName());
-            userParams.CurrentUsername = currentUser.UserName;
+            var gender = await _unitOfWork.UserRepository.GetUserGender(User.GetUserName());
+            userParams.CurrentUsername = User.GetUserName();
 
             if(string.IsNullOrEmpty(userParams.Gender))
             {
-                userParams.Gender = currentUser.Gender == "male" ? "female" : "male";
+                userParams.Gender = gender == "male" ? "female" : "male";
             }
-            var users = await _userRepository.GetMembersAsync(userParams);
+            var users = await _unitOfWork.UserRepository.GetMembersAsync(userParams);
             //var mappedUsers = _mapper.Map<IEnumerable<MemberDTO>>(users);
             Response.AddPaginationHeader(new PaginationHeader(users.currentPage, users.totalPages, users.pageSize,
                                          users.totalCount));
@@ -51,14 +51,14 @@ namespace ChattingApplication.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<MemberDTO>> GetUserById(int id)
         {
-            var users = await _userRepository.GetUserByIdAsync(id);
+            var users = await _unitOfWork.UserRepository.GetUserByIdAsync(id);
             var mappedUsers = _mapper.Map<MemberDTO>(users);
             return Ok(mappedUsers);
         }
         [HttpGet("byuser/{username}")]
         public async Task<ActionResult<MemberDTO>> GetUserByuserName(string username)
         {
-            var users = await _userRepository.GetUserByUserNameAsync(username);
+            var users = await _unitOfWork.UserRepository.GetUserByUserNameAsync(username);
             var mappedUsers = _mapper.Map<MemberDTO>(users);
             return Ok(mappedUsers);
         }
@@ -66,12 +66,12 @@ namespace ChattingApplication.Controllers
         public async Task<ActionResult> UpdateUser(MemberUpdateDTO memberUpdateDTO)
         {
             var username = User.GetUserName();
-            var user = await _userRepository.GetUserByUserNameAsync(username);
+            var user = await _unitOfWork.UserRepository.GetUserByUserNameAsync(username);
 
             if (user == null) return NotFound();
 
             _mapper.Map(memberUpdateDTO, user);
-            if(await _userRepository.SaveAllAsync()) return NoContent();
+            if(await _unitOfWork.Complete()) return NoContent();
 
             return BadRequest("failed to update user");
         }
@@ -85,7 +85,7 @@ namespace ChattingApplication.Controllers
             {
                 Console.WriteLine($"{header.Key}: {header.Value}");
             }
-            var user = await _userRepository.GetUserByUserNameAsync(User.GetUserName());
+            var user = await _unitOfWork.UserRepository.GetUserByUserNameAsync(User.GetUserName());
             if (user == null) return NotFound();
 
             var result = await _photoService.AddPhotoAsync(file);
@@ -101,7 +101,7 @@ namespace ChattingApplication.Controllers
 
             user.Photos.Add(photo);
 
-            if (await _userRepository.SaveAllAsync())
+            if (await _unitOfWork.Complete())
             {
                 return CreatedAtAction(nameof(GetUserByuserName),
                                        new {username = user.UserName},
@@ -112,7 +112,7 @@ namespace ChattingApplication.Controllers
         [HttpPut("setMainPhoto/{photoId}")]
         public async Task<ActionResult> setMainPhoto(int photoId)
         {
-            var user = await _userRepository.GetUserByUserNameAsync(User.GetUserName());
+            var user = await _unitOfWork.UserRepository.GetUserByUserNameAsync(User.GetUserName());
             if (user == null) return NotFound();
 
             var photo = user.Photos.FirstOrDefault(i => i.Id == photoId);
@@ -123,14 +123,14 @@ namespace ChattingApplication.Controllers
             var currentMain = user.Photos.FirstOrDefault(x => x.IsMain);
             if (currentMain != null) currentMain.IsMain = false;
             photo.IsMain = true;
-            if (await _userRepository.SaveAllAsync()) return NoContent();
+            if (await _unitOfWork.Complete()) return NoContent();
             return BadRequest("problem setting the main photo");
         }
 
         [HttpDelete("deletephoto/{photoId}")]
         public async Task<ActionResult> DeletePhoto(int photoId)
         {
-            var user = await _userRepository.GetUserByUserNameAsync(User.GetUserName());
+            var user = await _unitOfWork.UserRepository.GetUserByUserNameAsync(User.GetUserName());
 
             var photo = user.Photos.FirstOrDefault(i => i.Id == photoId);
             if (photo == null) return NotFound();
@@ -143,7 +143,7 @@ namespace ChattingApplication.Controllers
 
             }
             user.Photos.Remove(photo);
-            if (await _userRepository.SaveAllAsync()) return Ok();
+            if (await _unitOfWork.Complete()) return Ok();
             return BadRequest("problem deleting photo");
         }
     }
