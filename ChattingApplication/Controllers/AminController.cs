@@ -25,7 +25,7 @@ namespace ChattingApplication.Controllers
                               .Select(u => new
                               {
                                   u.Id,
-                                  Username = u.UserName,
+                                  UserName = u.UserName,
                                   Roles = u.UserRoles.Select(r => r.Role.Name).ToList()
                               }).ToListAsync();
 
